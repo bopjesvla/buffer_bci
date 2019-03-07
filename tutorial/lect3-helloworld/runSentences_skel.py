@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys, os
 from time import sleep, time
 bufhelpPath = "../../python/signalProc"
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),bufhelpPath))
+sys.path.append(bufhelpPath)
 import bufhelp
 
 ## HELPER FUNCTIONS
@@ -47,6 +47,17 @@ interCharDuration=1;
 ##                    ADD YOUR CODE BELOW HERE
 ##------------------------------------------------------
 
+ftc,hdr=bufhelp.connect();
+
+for s in sentences:
+    bufhelp.sendEvent('stimulus.sentences','start');
+    print('sentence start')
+    # sleep(1)
+    for c in s:
+        bufhelp.sendEvent('stimulus.char',c)
+        print(c)
+        # sleep(1)
+
 # set the display and the string for stimulus
 fig = plt.figure()
 fig.suptitle('RunSentences-Stimulus', fontsize=24, fontweight='bold')
@@ -57,7 +68,6 @@ ax.set_axis_off()
 h =ax.text(0, 0, 'This is some text', style='italic')
 
 ## init connection to the buffer
-ftc,hdr=bufhelp.connect();
 
 bufhelp.sendEvent('stimulus.sentences','start');
 ## STARTING PROGRAM LOOP

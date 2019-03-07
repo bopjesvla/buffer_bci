@@ -2,13 +2,13 @@
 # Set up imports and paths
 bufferpath = "../../dataAcq/buffer/python"
 sigProcPath = "../signalProc"
-import pygame, sys
-from pygame.locals import *
+import sys
+# from pygame.locals import *
 from time import sleep, time
 import os
 import numpy
 bufhelpPath = "../../python/signalProc"
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),bufhelpPath))
+sys.path.append(bufhelpPath)
 import bufhelp
 
 def echoClient(timeout=5000):
@@ -17,11 +17,15 @@ def echoClient(timeout=5000):
     ftc,hdr=bufhelp.connect();
 
     # send event to buffer
-    bufhelp.sendEvent('echo',1)
-        
-    # wait for ackknowledgement from Server
-       
-    ftc.disconnect() # disconnect from buffer when done
+    while True:
+        events = bufhelp.buffer_newevents(state=True)
+
+        for event in events:
+            if event.type == 'quit':
+                ftc.disconnect()
+                return
+            elif event.type != 'echo':
+                bufhelp.sendEvent('echo', event.value)
 
 if __name__ == "__main__":
     echoClient();
