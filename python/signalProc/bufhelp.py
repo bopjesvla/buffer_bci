@@ -91,16 +91,18 @@ def buffer_newevents(evttype=None,timeout_ms=500,state=True,verbose=False):
     '''
     global ftc,globalstate # use to store number events processed accross function calls
     useglobal=False
-    if state is None :
-        state = ftc.poll();
-    elif state==True : # use single global state
+    if state==True : # use a single global state
         useglobal=True
         if globalstate is None:
-            globalstate = ftc.poll();
+            globalstate = ftc.poll()
         state = globalstate
+    else : 
+        if not state : # init if not already set
+            state = ftc.poll()
 
     if verbose:
-        print(("Waiting for event(s) " + str(evttype) + " with timeout_ms " + str(timeout_ms)))
+        print("Waiting for event(s) " + str(evttype) + " with timeout_ms " + str(timeout_ms) + "from: (" + str(state[0])+","+str(state[1]) + ")")
+        if useglobal : print("using global state")
 
     start = time.time()
     elapsed_ms = -1 # ensure checks at least once even with 0-timeout
@@ -120,6 +122,7 @@ def buffer_newevents(evttype=None,timeout_ms=500,state=True,verbose=False):
             
             if not evttype is None and not events is None:
                 events = [x for x in events if x.type in evttype]
+            if events : print("Got %d events"%(len(events)))
         nEvents = curEvents # update starting number events (allow for buffer restarts)
         elapsed_ms = (time.time() - start)*1000
 
@@ -269,7 +272,7 @@ def createeventfilter(trigger):
         
     return func
     
-def gatherdata(trigger, time, stoptrigger, milliseconds=False, verbose = True):
+def gatherdata(trigger, time, stoptrigger=[], pending=[], stopondata=False, milliseconds=False, verbose = True):
     """Gathers data and returns a list of data and triggering events. The
     arguments trigger and stroptrigger are used to create event filters (using
     the function createeventfilter). 
@@ -291,11 +294,36 @@ def gatherdata(trigger, time, stoptrigger, milliseconds=False, verbose = True):
     
     Note that this function assumes that at least half a second of data is
     being stored in the buffer.
-
+    
+    Inputs: 
+     trigger    - [] set of triggers to start recording data
+     time       - [] length of data to record, in samples if Milliseconds=False, in milliseconds if Milliseconds=true
+     stoptrigger- [] set of triggers to stop gathering data.  
+                     **return immeadiately data is available if stoptrigger is *not* set**
+     pending    - [] set of previously identified events to get data from who do not have all the data yet
+     
+     stopondata - [boolean] if set then stop gathering as soon as we have some data to return, i.e. trigger-event happened and sufficient samples available.
     Outputs:
      data       - [[nSamp x nCh] x nEvent] list of lists of numpy-arrays of [nSamp x nCh] for each trigger
      events     - [event] list of trigger events
      stopevents - [event] list of events which caused us to stop gathering
+     state      - [struct] internal state of this function to track pending events which have not got complete data yet
+
+    Example Usage:
+      # gather data for trigger events, and return when 'stimulus.end' event is recieved
+      data,devents,stopevents=bufhelp.gatherdata('stimulus.epoch',100,'stimulus.end)
+
+      # wait for trigger event and return data as soon as it's ready 
+      pending=[]
+      while true:
+         data,devents,stopevents,pending=bufhelp.gatherdata('stimulus.epoch',100,[],pending,stopondata=true)
+         print('Got %d new events'%(len(data),len(devents)))
+
+      # wait for trigger event and return data OR when "stimulus.end"
+      pending=[]
+      while true:
+         data,devents,stopevents,pending=bufhelp.gatherdata('stimulus.epoch',100,'stimulus.end',pending,stopondata=true)
+         print('Got %d new events'%(len(data),len(devents)))
 """
 
     global fSample
@@ -313,16 +341,20 @@ def gatherdata(trigger, time, stoptrigger, milliseconds=False, verbose = True):
             time = int(ceil(time))    
     
     gatherFilter = createeventfilter(trigger)
-    stopFilter = createeventfilter(stoptrigger)
-    
+    if stoptrigger :        
+        stopFilter = createeventfilter(stoptrigger)
+    else:
+        if verbose: print("Stopping when data available")
+        stopondata=True
+        
     global ftc
     nSamples, nEvents = ftc.poll()
     
 
     stillgathering = True;
-    gather = []
     events = []
     data = []
+    stopevents=[]
     
     while True:
         nSamples, nEvents2 = ftc.wait(-1,nEvents, 500)    
@@ -331,33 +363,36 @@ def gatherdata(trigger, time, stoptrigger, milliseconds=False, verbose = True):
             e = ftc.getEvents((nEvents, nEvents2 -1))
             nEvents = nEvents2            
 
-            stopevents = stopFilter(e)            
+            if stoptrigger :
+                stopevents = stopFilter(e)            
             
-            if stopevents:
-                stillgathering = False
-                if len(stopevents) == 1:
-                    stopevents = stopevents[0]
+                if stopevents:
+                    stillgathering = False                
                 
             e = gatherFilter(e)
             
             for event in e:
+                if verbose:
+                    print("Recording event:"+str(event))
                 if not isinstance(time,dict):
                     endSample = event.sample + time
                 else:
                     endSample = event.sample + time[event.type]
                 
-                gather.append((event, endSample))
+                pending.append((event, endSample))
                 
-        for point in gather:
+        for point in pending:
             event,endSample = point
             if nSamples > endSample:
                 events.append(event)
                 data.append(ftc.getData((event.sample, endSample -1))) # [ nSamples x nChannels ]
-                gather.remove(point)            
+                pending.remove(point)            
+                if stopondata : # stop gathering if should return first time data is available
+                    stillgathering = False
                 if verbose:
-                    print(("Gathering " + str(event.type) + " " + str(event.value) + " data from " + str(event.sample) + " to " +str(endSample)))
+                    print(("Saving event :" + str(event) + " data from " + str(event.sample) + " to " +str(endSample)))
                 
-        if not stillgathering and not gather:
+        if not stillgathering:
             break
             
-    return (data,events, stopevents)
+    return (data, events, stopevents, pending)
