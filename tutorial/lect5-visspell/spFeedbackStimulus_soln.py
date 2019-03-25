@@ -50,7 +50,8 @@ def injectERP(amp=1,host="localhost",port=8300):
         
 ## CONFIGURABLE VARIABLES
 verb=0
-symbols=[['1','2','3'],['4','5','6'],['7','8','9']]
+#symbols=[['1','2','3'],['4','5','6'],['7','8','9']]
+symbols=['a','b','c','d']
 nSymbs =sum([len(r) for r in symbols])
 nSeq=6
 nRep=5
@@ -59,11 +60,11 @@ postCueDuration=1
 epochDuration=0.1
 interEpochDuration=0.1
 interSeqDuration=2
-classifierLagDuration=1
+classifierLagDuration=2
 feedbackDuration=2
 
 # target used for ERP injection for debugging
-debugTarget=3
+debugTarget=1
 
 bgColor =(.5,.5,.5)
 tgtColor=(0,1,0)
@@ -173,10 +174,17 @@ for ti in range(nSeq):
         # get all true stimulus into 1 numpy array
         stimSeq = np.array(stimSeq) # [ nEpochs x nSymbs ]
         # get all predictions into 1 numpy array
-        pred = np.array([e.value for e in events]) # [ nEpochs ]
-        ss   = stimSeq[:len(pred),:] # [ nSymbs x nEpochs ]
+        pred = np.array([e.value for e in events]) # [ pred nEpochs ]
+        # ensure the sizes match
+        if len(pred) > stimSeq.shape[0] : # more pred than stim
+            print("Warning: more predictions than stimulus, assuming last n pred valid")
+            pred   = pred[-stimSeq.shape[0]:]
+        elif len(pred)< stimSeq.shape[0]: # more stim than pred
+            print("Warning: more stimulus than predictions, assuming first N stim valid")
+            stimSeq= stimSeq[:len(pred),:] # [ nSymbs x nEpochs ]
         # similarity to prediction for each output [ nSymbs ]        
-        sim  = np.dot(ss.T,pred)
+        sim  = np.dot(stimSeq.T,pred)
+        print("Similarities: " + [ str(f)+" " for f in sim ] ) 
         # max similarity is the predicted class
         predIdx= np.argmax(sim,0) # predicted class
         predIdx= predIdx[0] # as integer for indexing

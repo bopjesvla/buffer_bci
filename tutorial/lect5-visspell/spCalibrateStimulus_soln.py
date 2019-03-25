@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # Set up imports and paths
 import sys, os
@@ -44,13 +45,14 @@ def injectERP(amp=1,host="localhost",port=8300):
     """Inject an erp into a simulated data-stream, sliently ignore if failed, e.g. because not simulated"""
     import socket
     try:
-        socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0).sendto(bytes(amp),(host,port))
+        socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0).sendto(bytes([amp]),(host,port))
     except: # sliently igore any errors
         pass
         
 ## CONFIGURABLE VARIABLES
 verb=0
-symbols=[['1','2','3'],['4','5','6'],['7','8','9']]
+#symbols=[['1','2','3'],['4','5','6'],['7','8','9']]
+symbols=['a','b','c','d']
 nSymbs =sum([len(r) for r in symbols])
 nSeq=6
 nRep=5
@@ -147,10 +149,10 @@ for ti,tgt in enumerate(tgtSeq):
         for si in range(nSymbs): # linear scan over outputs
             # flash
             hdls[si].set(color=flashColor)
+            drawnow()
             bufhelp.sendEvent('stimulus.flash',si)
             bufhelp.sendEvent('stimulus.tgtFlash',si==tgt)            
             injectERP(amp=int(si==tgt)) # injectERP for debug testing
-            drawnow()
             sleep(epochDuration)                
             # reset
             hdls[si].set(color=bgColor)
