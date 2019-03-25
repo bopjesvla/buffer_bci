@@ -92,7 +92,8 @@ def fit(data, events, classifier, mapping=dict(), params = None, folds = 5, shuf
         if not isinstance(folds, int):
             raise Exception("folds should be an integer")
         
-        folds = sklearn.model_selection.KFold(X.shape[0], folds, shuffle=shuffle)
+        print(shuffle)
+        folds = sklearn.model_selection.KFold(folds, shuffle=shuffle)
         grid  = sklearn.model_selection.GridSearchCV(classifier, params, cv=folds)
         
         if Y is None:
