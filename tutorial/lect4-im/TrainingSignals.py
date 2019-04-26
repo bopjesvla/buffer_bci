@@ -57,7 +57,7 @@ X = X[goodch,:,:];
 
 # 3: apply spatial filter
 
-data=preproc.spatialfilter(data,'car')
+X=preproc.spatialfilter(X,'car')
 
 # 4 & 5: map to frequencies and select frequencies of interest
 
@@ -81,7 +81,7 @@ import linear
 #mapping = {('stimulus.target', 0): 0, ('stimulus.target', 1): 1}
 X2d = np.reshape(X,(-1,X.shape[2])).T # sklearn needs data to be [nTrials x nFeatures]
 classifier = linear.fit(X2d,labels.astype(int))#,mapping)
-print(X2d[labels].mean(axis=0) - X2d[~labels].mean(axis=0) > .00000001)
+print(X2d[labels].mean(axis=0) - X2d[~labels].mean(axis=0))
 print(labels.astype(int))
 
 # save the trained classifer

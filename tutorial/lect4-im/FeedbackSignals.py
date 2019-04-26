@@ -38,15 +38,15 @@ while True:
     data, events, stopevents, pending = bufhelp.gatherdata(["stimulus.char"], trlen_ms, None, pending, milliseconds=True)
     
     # get all event type labels
-    event_types = [e.type[0] for e in events] 
-    
+    event_types = [e.type[0] for e in events]
+    event_letters = [e.value[0] for e in events]
+
     # stop processing if needed
     if "stimulus.feedback" in event_types:
         break
 
     # get data in correct format
     data = np.transpose(data)
-    print(data.shape)
 
     # 1: detrend
     data = preproc.detrend(data)
@@ -66,7 +66,7 @@ while True:
     # predictions = [ ivaluedict[round(i)] for i in fraw ]
     predictions = fraw
     # send the prediction events
-    for pred in predictions:
-        bufhelp.sendEvent("classifier.prediction",pred)
+    for letter, pred in zip(event_letters, predictions):
+        bufhelp.sendEvent("classifier.prediction", letter + '_' + str(pred))
         print(pred)
         

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Set up imports and paths
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import sys, os
@@ -84,7 +84,7 @@ def charStim(t):
         print(letters)
         bufhelp.sendEvent('stimulus.repetition', i)
         for c in letters:
-            bufhelp.sendEvent('stimulus.char', c + '_' + str(c==t))
+            bufhelp.sendEvent('stimulus.char', c if t == None else c + '_' + str(c==t))
             if c == t:
                 injectERP(1)
             h.set(text=c)
@@ -109,17 +109,32 @@ def calibration():
     bufhelp.sendEvent('stimulus.training', 'end')
 
 def feedback():
-    h.set(text='Think of your target letter and get ready')
-    drawnow()
-    sleep(2)
-    h.set(text='', color='k')
-    drawnow()
-    sleep(1)
-    charStim(None)
-    sleep(1)
-    state = []
+    for i in range(10):
+        beforevents, state = bufhelp.buffer_newevents('classifier.prediction', 0, state=None)
+        h.set(text='Think of your target letter and get ready')
+        drawnow()
+        sleep(2)
+        h.set(text='', color='k')
+        drawnow()
+        sleep(1)
+        charStim(None)
+        h.set(text='', color='k')
+        drawnow()
+        sleep(1)
 
-calibration()
+        feedbackevents, _state = bufhelp.buffer_newevents('classifier.prediction', state=state)
+
+        # predictions contain both labels and values
+        chars, predictions = np.array([e.value.split('_') for e in feedbackevents]).T
+
+        predictions = predictions.astype(float)
+
+        # get the character with the highest mean prediction (currently random in feedback stage)
+        best = max(np.unique(chars), key=lambda c: np.mean(predictions[chars == c]))
+
+        h.set(text=best, color='b')
+        drawnow()
+        sleep(2)
 
 while True:
     h.set(text='Press c for calibration, f for feedback')
