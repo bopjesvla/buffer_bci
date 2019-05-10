@@ -1,0 +1,37 @@
+% template file used to generate the matlab command to run the remote job
+% ++varname-- is expanded to the contents of varname in rproc
+!echo "s.started = datenum('`date '+%d-%b-%Y %H:%M:%S'`');" >> ++statusfile--
+fprintf('### job ++jobname--: m-file started            %s\n', datestr(now));
+fprintf('### ++description-- \n\n');
+
+addpath('++matlabpath--');
+err='';
+cd('++cwd--');
+fprintf('### CWD : %s',cd());
+try
+   ++matlab_preflight_cmd--
+	;
+catch
+	err=lasterr;
+end
+if ( isempty(err) )
+	globalfile='++globalfile--'; 
+	if ( ~isempty(globalfile) ) load(globalfile); whos global, end;
+	vararginmatfile='++inputmatfile--';
+	if ( ~isempty(vararginmatfile) ) load(vararginmatfile,'varargin'); end;
+	try
+		  ++callstr-- ;
+		  err='';
+   catch
+		  err=lasterr;
+	end
+end 
+if isempty(err)
+	!echo "s.finished = datenum('`date '+%d-%b-%Y %H:%M:%S'`');" >> ++statusfile--
+else
+   !echo "s.failed = datenum('`date '+%d-%b-%Y %H:%M:%S'`');" >> ++statusfile--
+	fprintf('### error:\n%s\n',err);
+	fd=fopen('++statusfile--.err', 'w+');	fprintf(fd, '%s', err);	fclose(fd);
+end
+fprintf('\n### job ++jobname--: matlab exiting         %s\n', datestr(now));
+exit

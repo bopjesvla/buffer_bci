@@ -1,0 +1,3 @@
+readCap		read the cap files in ../caps. Use the *.txt files
+cap2eeglab	convert from cap to eeglab format
+cap2xyz		convert from cap to xyz format

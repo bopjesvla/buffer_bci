@@ -1,0 +1,23 @@
+function mf = plotbdfepoch(filename,rec,chans,samples,mf)
+if isempty(mf)
+	% set memory map file structure and select the number of channels to be read
+	% at once for every record
+	% only read the last=status channel
+	mf = read_biosemi_bdf_memmap(filename);
+	mf.handle = figure;
+end
+
+nsamp = max(mf.hdr.orig.SPR);
+if rec < 1 || rec > mf.hdr.orig.NRec
+	error('Epoch number out of range');
+end
+
+% get status channel data for this record
+[mf, data] = read_biosemi_bdf_memmap(mf, 1+(rec-1)*nsamp, rec*nsamp);
+
+d=data(chans,1:samples);
+mn=mean(d,2);
+dm=d-repmat(mn,1,samples);
+plot((1:samples)./sr,dm(chans,1:samples))
+ylabel('EEG [uV]');
+xlabel('time [s]');  
