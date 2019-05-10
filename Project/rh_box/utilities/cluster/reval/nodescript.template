@@ -1,0 +1,14 @@
+#!++nodeshell_program--
+# template file used to generate the script file to run on the compute node
+# ++varname-- is expanded to the contents of varname in rproc
+
+++node_preflight_cmd--
+cd ++cwd--
+cat <<EOF >> ++statusfile--
+s.host = '`hostname`'; 
+s.launched = datenum('`date "+%d-%b-%Y %H:%M:%S"`');
+EOF
+echo ### job ++jobname--: launcher script started `date "+%d-%b-%Y %H:%M:%S"` on `hostname`
+++matlab_program-- ++matlab_options-- -r "run ++mastermfile--"
+echo ### job ++jobname--: launcher script finishing `date "+%d-%b-%Y %H:%M:%S"` on `hostname`
+echo "s.landed = datenum('`date '+%d-%b-%Y %H:%M:%S'`');" >> ++statusfile--

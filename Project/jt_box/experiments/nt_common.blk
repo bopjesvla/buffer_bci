@@ -1,0 +1,93 @@
+ 
+[eeg]
+Cap                     = 'nt_cap64.txt';   % Cap file with labels and positions
+pp.downsample.targetFs  = 360;              % Target sample frequency
+pp.filter.hpf           = 2;                % High-pass cut-off of spectral filter (4th order Butter)
+pp.filter.lpf           = 48;               % Low-pass cut-off of spectral filter (4th order Butter)
+pp.MatlabPathAdd        = { bs_folder('reference'), bs_folder('resources'), fullfile(home_root,'bci_code','toolboxes','rjv_realtime_preproc'), fullfile(home_root,'bci_code','toolboxes','numerical_tools'), fullfile(home_root,'bci_code','toolboxes','signal_processing'), fullfile(home_root,'bci_code','toolboxes','utilities','general'), fullfile(plugins_folder,'CapMontage'), fullfile(home_root,'bci_code','own_experiments','visual','noise_tagging','jt_box')};
+ 
+[Clients]
+stim = 'localhost';
+ 
+[stim]
+MatlabPathAdd = { fullfile(home_root,'bci_code','toolboxes','utilities','general')};
+ 
+[RunMode]
+VerbosityLevel = 'ERROR';
+ 
+[ExperimentDefinitionVars]
+TYPEMARKER          = 'stimulus';   % Dictionary marker type
+InitializeTime      = '2';          % Initialization time (sec)
+PreTrialTime        = '1';          % Pre trial time (sec)
+TrialTime           = '4.2';        % Trial time (sec)
+SegmentTime         = '0.1';        % Segment time (sec)
+PostTrialTime       = '1';          % Post trial time (sec)
+JitterTime 			= '0.010'; 		% Jitter in inter trial time (sec)
+InterTrialTime      = '0';          % Inter trial interval (sec)
+TerminateTime       = '0';          % Time to close the application (sec)
+MaxTrials           = '30';         % Maximum number of trials in experiment (#)
+MaxTime             = 'Inf';        % Maximum time of experiment (sum of actual trialtime) (sec)
+JitterShiftTime	= '0'; % Amount of Time correction required to compensate for delayed sent marker (to get around jitter in BT timing)
+ 
+[StimulationVars]
+OutputDevice        = 'monitor';            % Output device
+StimulationRate     = 60;                   % Stimulation rate/bit rate
+Synchronous         = true;                 % Synchronous stimulation
+NumTrainClasses     = 36;                   % Number of classes for training
+TrainCodes          = 'mgold_61_6521.mat';  % Code file for training (mgold_61_6521)
+TrainSubset         = 'no';                 % Code subset type for training
+TrainLayout         = 'no';                 % Code layout type for training
+NumTestClasses      = 36;                   % Number of classes for testing
+TestCodes           = 'mgold_61_6521.mat';  % Code file for testing (mgold_65_6532)
+TestSubset          = 'clustering';         % Code subset type for testing
+TestLayout          = 'incremental';        % Code layout type for testing
+ 
+[DataprocVars]
+DataMarker          = 'datamarker'; % Data marker
+DataSource          = 'eeg';        % Data source
+MarkerType          = 'hardware';   % Use of hardware or software marker
+Rereference         = 'no';         % Re-referencing method
+FilterBands         = {[2 48]};     % Spectral filter pass bands
+ChnThreshold        = false;        % Number of std for outlier channel
+TrlThreshold        = false;        % Number of std for outlier trial
+DoBufferPreproc     = false;        % Whether or not preprocessing is on the buffer
+DoRetrain           = false;        % Whether or not retraining classifier each trial
+DoSaveTrialClassifier = false;      % Whether or not to save classifiers of each trail (e.g. during zerotraining)
+ 
+[ClassifierVars]
+Verbosity           = 2;            % verbosity level: 0=off, 1=classifier, 2=classifier with cheaty accuracy, 3=classifier with cross-validated accuracy
+SegmentTime 		= 0.1; 			% Duration of a segment for classification
+MinTime             = 0;            % forward stopping: minimum duration in seconds
+MaxTime             = 4;            % forward stopping: maximum duration in seconds
+MinBackTime 		= 0;			% backward stopping: minimum duration in seconds
+MaxBackTime 		= 4;			% backward stopping: maximum duration in seconds
+Delay               = 0;            % cca: positive delay of each event start
+Method              = 'fwd';        % classification method: fix=fixed-length trials, fwd=forward-stopping, bwd=backward-stopping
+Online              = true;         % whether or not to classify an online single-trial, or to use a simulated multi-trial offline approach
+Supervised          = true;         % whether or not supervised
+Synchronous         = true;         % whether or not synchronous
+RunCorrelation      = false;        % whether or not to use running correlations
+Cca                 = 'cov';        % cca: method: qr, svd, cov, eig
+L                   = .3;           % cca: length of transient responses in seconds
+Event               = 'duration';   % cca: event type for decomposition: on, off, onoff, duration, ...
+Component           = 1;            % cca: component to use
+LambdaX             = .9;           % cca: regularization for Wx: filter
+LambdaY             = 'tukey';      % cca: regularization for Wy: transient responses
+LambdaXAmp          = 0.1;			% cca: amplifier for lx regularization penalties, i.e., maximum penalty (1)
+LambdaYAmp          = 0.01; 		% cca: amplifier for ly regularization penalties, i.e., maximum penalty (1)
+LambdaYPerc         = 0.2; 			% cca: relative parts of the taper that is regularized (.2)
+ModelOnset          = false;        % cca: whether or not to model the onset, uses L(end) as length
+Neighbours          = [6 6];        % layout: neighbour pairs
+Stopping            = 'beta';       % dynamic stopping: stopping method: margin, beta
+ForceStop           = true;         % dynamic stopping: whether or not to force stop at maximum trial length
+Accuracy            = .95;          % dynamic stopping: targeted stopping accuracy
+ShiftTime           = 1/30;         % asynchronous: step size for shifting templates in seconds
+ShiftTimeMax        = 1.05;         % asynchronous: maximum shift step in seconds
+TransferModel       = false;        % transfer-learning: which transfer model to use: train, transfer, transfertrain, no
+TransferFile        = 'nt_model_chn64_ev144.mat'; % transfer-learning: file of the transfer model
+TransferCount       = 0;            % transfer-learning: number of samples/weight of the model
+RunCovariance       = false;        % unsupervised: whether or not to use running covariance
+FirstMinTime		= 12;			% unsupervised: minimum trial length for first trial in seconds
+FirstAccuracy 		= 0.99;			% unsupervised: targeted accuracy for first trial
+FreshCalibration    = true;         % start with a fresh classifier
+AlwaysClick         = true;         % irrespective of label result, send click to iPad

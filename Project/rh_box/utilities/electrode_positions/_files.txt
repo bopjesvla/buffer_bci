@@ -1,0 +1,7 @@
+biosemi.xls	excell sheet with locations of biosemi caps
+caps		location of electrodes for different caps. Several formats
+conversion	conversion from biosemi to carthesian coordinates or EEGlab chanlocs structure
+functioning	test the functioning of electrodes. Deprecated, Philip will have newer functions
+interpolation	functions for the interpolation of caps
+neighbours	files with the neighbours of electrodes
+

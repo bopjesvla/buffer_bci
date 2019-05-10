@@ -1,0 +1,4 @@
+contribute		determines which electrodes contribute to interpolation
+downSampleElectrodes	find 'optimal' distribution of electrodes over head
+knnclass_mex		compiled matlab files
+sphericalInterpolate	interpolation scheme
