@@ -5,12 +5,13 @@ commands_columns = 'tv.1 tv.2 tv.3 tv.end sos.food sos.pain sos.toilet call.1 ca
 
 NR_EVENTS = 5
 
-probs = pd.DataFrame(np.zeros((NR_EVENTS, len(commands_columns))), columns=commands_columns)
+# probs = pd.DataFrame(np.zeros((NR_EVENTS, len(commands_columns))), columns=commands_columns)
 
-commands = pd.DataFrame(
+CMDS = pd.DataFrame(
     [c.split('.') for c in commands_columns],
     columns=['event', 'value'],
     index=commands_columns)
+
 
 # probs.loc[0, 'navigate.left'] = 1
 # probs.loc[1, 'navigate.left'] = 1
@@ -18,54 +19,69 @@ commands = pd.DataFrame(
 # probs.loc[3, 'tv.1'] = 1
 # probs.loc[4, 'sos.food'] = 1
 
-def calc_priors(ev_list='navigate.left navigate.left navigate.left tv.1 sos.food'.split()):
-    sent_list = commands.loc[ev_list]
+#error costs
+cost_navigation_error = 15
+cost_tv_error = 5
+cost_communicate_error = 15
+cost_sos_error = 60
 
-    # print(probs)
+
+# probs.loc[0, 'navigate.left'] = 1
+# probs.loc[1, 'navigate.left'] = 1
+# probs.loc[2, 'navigate.left'] = 1
+# probs.loc[3, 'tv.1'] = 1
+# probs.loc[4, 'sos.food'] = 1
+
+def calc_priors(ev_list):
+    commands = CMDS.copy()
+
+    sent_list = commands.loc[ev_list]
+    print('sent', sent_list)
 
     # number of occurrences during demo / number of options
 
     default_priors = {
-        'tv': 1 / 3,
-        'sos': 1 / 3,
-        'call': 1 / 3,
-        'navigate': 12 / 4
+        'tv': cost_tv_error * 3 / 3,
+        'sos': 2 * cost_sos_error * 1 / 3, # 2 errors: 1 for sos.on, 1 for sos.*
+        'call': cost_communicate_error * 2 / 3,
+        'navigate': cost_navigation_error * 11 / 4
     }
 
     ## priors
 
     commands['priors'] = commands.event.replace(default_priors)
+
+    print('god',commands.priors)
+
     tvevents = sent_list[sent_list.event == 'tv']
+    navevents = sent_list[sent_list.event == 'navigate']
 
     if len(tvevents) == 0 or tvevents.iloc[-1].value == 'end':
-        commands.priors.loc['tv.end'] = 0
+        commands.loc['tv.end', 'priors'] = 0
     else:
-        commands.priors.loc['tv.end'] = 1
+        commands.loc['tv.end', 'priors'] = 1
+        commands.loc[tvevents.index[-1], 'priors'] = 0
+
 
     error_priors = commands.priors.copy()
 
     CERTAINTY = .8
+    dirs = 'navigate.' + pd.DataFrame({'normal':['up', 'right', 'down', 'left']})
+    dirs['ldir'] = np.roll(dirs.normal, 1)
+    dirs['rdir'] = np.roll(dirs.normal, -1)
+    dirs['opposite'] = np.roll(dirs.normal, 2)
+    dirs = dirs.set_index('normal')
 
-    dirs = pd.DataFrame(index=['up', 'right', 'down', 'left'])
-    dirs['ldir'] = np.roll(dirs.index, 1)
-    dirs['rdir'] = np.roll(dirs.index, -1)
-    dirs['opposite'] = np.roll(dirs.index, 2)
-
-    print(dirs)
-
-    navevents = sent_list[sent_list.event == 'navigate']
-
-    if len(navevents) > 0:
-        last_dir = navevents[-1]
-
-        commands.priors.loc[last_dir] *= 2.5
-        commands.priors.loc[dirs.loc[last_dir].ldir] *= .75
-        commands.priors.loc[dirs.loc[last_dir].rdir] *= .75
-        commands.priors.loc[dirs.loc[last_dir].opposite] = 0
+    if len(sent_list) > 0 and sent_list.iloc[-1].event == 'navigate':
+        last_dir = sent_list.index[-1]
+        commands.loc[last_dir, 'priors'] *= 2.5
+        commands.loc[dirs.loc[last_dir].ldir, 'priors'] *= .75
+        commands.loc[dirs.loc[last_dir].rdir, 'priors'] *= .75
+        commands.loc[dirs.loc[last_dir].opposite, 'priors'] = 0
 
     final_priors = CERTAINTY * commands.priors + (1 - CERTAINTY) * error_priors
 
-    return final_priors
+    return final_priors / sum(final_priors.values)
 
 if __name__ == "__main__":
     #!/usr/bin/env python3
@@ -81,7 +97,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),bufhelpPath))
     import bufhelp
 
-    def echoClient(events, timeout=2):
+    def send_prior_loop(events, timeout=2):
 
         ## init connection to the buffer
         ftc,hdr=bufhelp.connect();
@@ -95,7 +111,7 @@ if __name__ == "__main__":
         while endExpt is None:
             (curSamp,curEvents)=ftc.wait(-1,nEvents,timeout) # Block until there are new events to process
             if curEvents>nEvents :
-                evts=ftc.getEvents([nEvents,curEvents-1]) 
+                evts=ftc.getEvents([nEvents,curEvents-1])
                 nEvents=curEvents # update record of which events we've seen
                 for evt in evts:
                     if evt.type == "exit": endExpt=1
@@ -103,11 +119,10 @@ if __name__ == "__main__":
                     if ev_str in events.index.values:
                         ev_list.append(ev_str)
                         priors = calc_priors(ev_list)
-                        print(priors)
+                        bufhelp.sendEvent('priors', priors.to_csv())
 
-                    print(evt)
+                    # print(evt)
 
         ftc.disconnect() # disconnect from buffer when done
 
-
-    echoClient(commands)
+    send_prior_loop(CMDS)
