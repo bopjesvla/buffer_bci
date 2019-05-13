@@ -49,7 +49,7 @@ for i = 1:k
     
     % Apply classifier
     [labels,ret] = jt_tmc_apply(classifier,data.X(:,:,tstidx));
-    results.p(i) = mean(labels==data.y(tstidx));
+    results.p(i) = mean(labels==data.y(tstidx)');
     results.t(i) = mean(ret.t);
     results.d(i) = mean(ret.d);
     results.c(i) = classifier; 

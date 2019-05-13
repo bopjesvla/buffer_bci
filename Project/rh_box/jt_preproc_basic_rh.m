@@ -35,7 +35,7 @@ fronttime   = jt_parse_cfg(cfg,'fronttime',0);
 if chnthres && nchannels>1
     ret.rmvchn = idOutliers(X,1,3);
     ret.rmvchn = squeeze(ret.rmvchn);
-    temp = zeros(size(X(ret.rmvchn,:,:),1),1440,60); 
+    temp = zeros(size(X(ret.rmvchn,:,:),1),2250,30); %aangepast naar huidige dimensies
     if ~isempty(X(ret.rmvchn,:,:))
         X(ret.rmvchn,:,:) = [temp];
     end

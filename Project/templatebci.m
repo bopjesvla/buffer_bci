@@ -68,7 +68,5 @@ for seq=1:2
         set(htext(:),'BackgroundColor',[0,0,0])
     end
 end
-disp('derp')
 % sendEvent('Stimulus.action', 'end');
 sendEvent('Stimulus.end'); 
-disp('derp2')

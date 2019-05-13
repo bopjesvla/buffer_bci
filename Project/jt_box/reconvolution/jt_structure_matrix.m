@@ -41,9 +41,9 @@ end
 [m,e,n] = size(E);
 
 % Check number of events and corresponding lengths
-if numel(L)==1 
+if numel(L)==1
     L = L*ones(1,e); 
-elseif numel(L)>e 
+elseif numel(L)>e
     error('There were more events in L (%d) than were found (%d) in V!',numel(L),e);
 end
 
