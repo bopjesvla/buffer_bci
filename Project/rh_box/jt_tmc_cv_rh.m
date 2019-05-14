@@ -43,15 +43,14 @@ for i = 1:k
         trnidx = cv.training(i);
         tstidx = cv.test(i);
     end
-
     % Train classifier
     classifier = jt_tmc_train(struct('X',data.X(:,:,trnidx),'y',data.y(trnidx),'V',data.V,'U',data.V),cfg);
     
     % Apply classifier
     [labels,ret] = jt_tmc_apply(classifier,data.X(:,:,tstidx));
     results.p(i) = mean(labels==data.y(tstidx)');
-    results.t(i) = mean(ret.t);
-    results.d(i) = mean(ret.d);
+    results.t(i) = mean(ret.t); 
+    results.d(i) = mean(ret.d); 
     results.c(i) = classifier; 
 end
 

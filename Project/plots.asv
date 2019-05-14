@@ -1,0 +1,41 @@
+% RUN advbci.m first!
+
+plots(results, 1, 1)
+
+function plots(results, transients, topo)
+    % Transients: 
+    if transients 
+        x = linspace(0,0.3,108); 
+        figure;
+        suptitle('Transient responses')
+        subplot(1,2,1)
+        hold on 
+        for i = 1:numel(results.c) %per cv fold
+            y = results.c(i).transients(1:108); %short flash
+            xlabel('Time [sec]');
+            ylabel('Amp [a.u.] \pm std');
+            title('Short flash')
+            set(gca,'color',[.75 .75 .75]);
+            plot(x, y)
+        end
+
+        subplot(1,2,2)
+        hold on
+        for i = 1:numel(results.c) 
+            y = results.c(i).transients(109:216); %long flash
+            xlabel('Time [sec]');
+            ylabel('Amp [a.u.] \pm std');
+            title('Long flash')
+            set(gca,'color',[.75 .75 .75]);
+            plot(x, y)
+        end
+    end
+    
+    % Topo
+    if topo
+        figure; 
+        for i = 1:5
+            for j = 1:2
+                subplot(1
+    end
+end

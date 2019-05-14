@@ -110,4 +110,8 @@ for i = 2:10
     sign(jt_correlation(results.c(i).transients(:),temp));
 end
 
-mean(results.p)
+fprintf('Mean accuarcy: %d\n', mean(results.p)); 
+fprintf('Mean trial length: %d\n', mean(results.t)); 
+fprintf('Mean data length: %d\n', mean(results.d)); 
+
+plots(results, 1, 1)
