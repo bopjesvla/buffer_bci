@@ -35,11 +35,9 @@ actions={'pause', 'up', 'tvOff', 'tv1', 'food'; 'left', 'down', 'right', 'tv2','
 %goldcodesequences runnen. Doe dit 2 keer.
 %randomize the action to focus to
 targeton = false;
-for action=1:15
-    set(hpanel(action),'BackgroundColor',[0,0,0]);
-    set(htext(action),'BackgroundColor',[0,0,0]);
-
-end
+for i = 
+set(hpanel(action),'BackgroundColor',[0,0,0])
+set(htext(action),'BackgroundColor',[0,0,0])
 drawnow;
 msg=msgbox({'Press OK to start'},'Continue?');while ishandle(msg); pause(.2); end;
 sendEvent('Stimulus.start', 'start');
@@ -72,10 +70,9 @@ for seq=1:2
             end
         end
         %reset de basic grid
-        set(hpanel(:),'BackgroundColor',[0,0,0]);
-        set(htext(:),'BackgroundColor',[0,0,0]);
-        drawnow;
-        sleepSec(2);
+        set(hpanel(:),'BackgroundColor',[0,0,0])
+        set(htext(:),'BackgroundColor',[0,0,0])
+        sleepSec(1);
     end
 end
 % sendEvent('Stimulus.action', 'end');
