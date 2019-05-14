@@ -1,6 +1,6 @@
 try; cd(fileparts(mfilename('fullpath')));catch; end;
 try;
-   run ../matlab/utilities/initPaths.m
+   run ../../matlab/utilities/initPaths.m
 catch
    msgbox({'Please change to the directory where this file is saved before running the rest of this code'},'Change directory'); 
 end
@@ -35,7 +35,7 @@ actions={'pause', 'up', 'tvOff', 'tv1', 'food'; 'left', 'down', 'right', 'tv2','
 %goldcodesequences runnen. Doe dit 2 keer.
 %randomize the action to focus to
 targeton = false;
-sendEvent('Stimulus.start', 'start');
+sendEvent('Stimulus.action', 'start');
 for seq=1:2
     x = randperm(15);
     for target=1:length(x)
@@ -68,5 +68,4 @@ for seq=1:2
         set(htext(:),'BackgroundColor',[0,0,0])
     end
 end
-% sendEvent('Stimulus.action', 'end');
-sendEvent('Stimulus.end'); 
+sendEvent('Stimulus.action', 'end');
