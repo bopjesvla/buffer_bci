@@ -1,13 +1,21 @@
+% Paths
+% try; cd(fileparts(mfilename('fullpath')));catch; end;
+% try;
+%    run ../matlab/utilities/initPaths.m
+% catch
+%    msgbox({'Please change to the directory where this file is saved before running the rest of this code'},'Change directory'); 
+% end
+
 % Load and preprocess training data
 % Parameters
 fs          = 360;                  % Sample frequency (hertz)
 fr          = 60;                   % Frame rate (hertz)
 nchannels   = 32;                   % Number of channels (electrodes)
-ntrials     = 30;
+ntrials     = 60;
 lentrial    = 2250; 
 
 traincodesfile = 'mgold_61_6521.mat';
-datafile = load('training_dataW.mat');
+datafile = load('training_dataW2.mat');
 
 % x = single(zeros(nchannels, lentrial, ntrials)); 
 temp = struct2cell(datafile.data);
@@ -102,16 +110,18 @@ traincodes = jt_upsample(codes,fs/fr); % upsample from framerate to samplerate
 traindata.V = traincodes;
 fprintf('\tTraining codes: [%d %d]\n',size(traindata.V,1),size(traindata.V,2));
 
+fprintf('Training classifier...\n'); 
 results = jt_tmc_cv_rh(traindata,clfcfg); 
 
+fprintf('Validating classifier\n'); 
+fprintf('\tFold: [1]...\n'); 
 for i = 2:10
+    fprintf('\tFold: [%d]...\n', i); 
     temp = (results.c(i-1).transients + results.c(i).transients()) ./2;
     results.c(i).transients = results.c(i).transients(:) * ...
     sign(jt_correlation(results.c(i).transients(:),temp));
 end
 
 fprintf('Mean accuarcy: %d\n', mean(results.p)); 
-fprintf('Mean trial length: %d\n', mean(results.t)); 
-fprintf('Mean data length: %d\n', mean(results.d)); 
 
 plots(results, 1, 1)
