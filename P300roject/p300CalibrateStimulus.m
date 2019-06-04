@@ -1,6 +1,6 @@
 try; cd(fileparts(mfilename('fullpath')));catch; end;
 try;
-   run ../../matlab/utilities/initPaths.m
+   run ../matlab/utilities/initPaths.m
 catch
    msgbox({'Please change to the directory where this file is saved before running the rest of this code'},'Change directory'); 
 end
@@ -26,7 +26,7 @@ initgetwTime;
 initsleepSec;
 
 verb=0;
-nSeq=1;
+nSeq=15;
 nRepetitions=5;  % the number of complete row/col stimulus before sequence is finished
 cueDuration=2;
 stimDuration=.2; % the length a row/col is highlighted

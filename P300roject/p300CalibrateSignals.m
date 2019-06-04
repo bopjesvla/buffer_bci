@@ -1,6 +1,6 @@
 try; cd(fileparts(mfilename('fullpath')));catch; end;
 try;
-   run ../../matlab/utilities/initPaths.m
+   run ../matlab/utilities/initPaths.m
 catch
    msgbox({'Please change to the directory where this file is saved before running the rest of this code'},'Change directory'); 
 end
@@ -25,7 +25,7 @@ initsleepSec;
 
 verb=1;
 trlen_ms=600;
-dname='calibrate_data';
+dname='Robin_data1';
 
 [data,devents,state]=buffer_waitData(buffhost,buffport,[],'startSet',{{'stimulus.rowtgtFlash', 'stimulus.coltgtFlash'}},'exitSet',{'stimulus.training' 'end'},'verb',verb,'trlen_ms',trlen_ms);
 mi=matchEvents(devents,'stimulus.training','end'); devents(mi)=[]; data(mi)=[]; % remove the exit event

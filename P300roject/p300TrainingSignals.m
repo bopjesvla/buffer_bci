@@ -1,6 +1,6 @@
 try; cd(fileparts(mfilename('fullpath')));catch; end;
 try;
-   run ../../matlab/utilities/initPaths.m
+   run ../matlab/utilities/initPaths.m
 catch
    msgbox({'Please change to the directory where this file is saved before running the rest of this code'},'Change directory'); 
 end
@@ -27,7 +27,7 @@ fname='clsfr';
 
 load(dname);
 % train classifier
-clsfr=buffer_train_erp_clsfr(data,devents,hdr,'spatialfilter','wht','freqband',[0 .3 10 12],'badchrm',0,'capFile',capFile,'overridechnms',overridechnm);
+[clsfr, temp]=buffer_train_erp_clsfr(data,devents,hdr,'spatialfilter','wht','freqband',[0 .3 10 12],'badchrm',0,'capFile',capFile,'overridechnms',overridechnm);
 % save result
 fprintf(1,'Saving clsfr to : %s',fname);
 save(fname,'-struct','clsfr');
