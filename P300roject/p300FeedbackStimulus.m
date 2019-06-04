@@ -1,0 +1,148 @@
+try; cd(fileparts(mfilename('fullpath')));catch; end;
+try;
+   run ../matlab/utilities/initPaths.m
+catch
+   msgbox({'Please change to the directory where this file is saved before running the rest of this code'},'Change directory'); 
+end
+try; cd(fileparts(mfilename('fullpath')));catch; end; %ARGH! fix bug with paths on Octave
+
+buffhost='localhost';buffport=1972;
+trigsocket=javaObject('java.net.DatagramSocket');
+trigsocket.connect(javaObject('java.net.InetSocketAddress','localhost',8300));
+% wait for the buffer to return valid header information
+hdr=[];
+while ( isempty(hdr) || ~isstruct(hdr) || (hdr.nchans==0) ) % wait for the buffer to contain valid data
+  try 
+    hdr=buffer('get_hdr',[],buffhost,buffport); 
+  catch
+    hdr=[];
+    fprintf('Invalid header info... waiting.\n');
+  end;
+  pause(1);
+end;
+
+% set the real-time-clock to use
+initgetwTime;
+initsleepSec;
+
+verb=0;
+nSeq=15;
+nRepetitions=5;  % the number of complete row/col stimulus before sequence is finished
+cueDuration=2;
+stimDuration=.2; % the length a row/col is highlighted
+feedbackDuration = 1;
+interSeqDuration=2;
+bgColor=[.5 .5 .5]; % background color (grey)
+flashColor=[1 1 1]; % the 'flash' color (white)
+tgtColor=[0 1 0]; % the target indication color (green)
+fbColor = [0 0 1];
+
+symbols={'pause', 'up', 'tvOff', 'tv1', 'food'; 'left', 'down', 'right', 'tv2','toilet'; 'call1','call2','call3', 'tv3', 'pain'};
+numbers = [1 4 7 10 13; 2 5 8 11 14; 3 6 9 12 15];
+% make the stimulus
+clf;
+[h]=initGrid(symbols);
+
+tgtSeq = repmat([1:numel(symbols)]',ceil(nSeq/numel(symbols)));
+tgtSeq = tgtSeq(randperm(nSeq));
+
+flashseqsmall = [1 2 3 4 5 6 7 8];
+flashseq = [flashseqsmall flashseqsmall flashseqsmall];
+x = flashseq(randperm(length(flashseq)));
+% x=flashseqsmall;
+
+% play the stimulus
+% reset the cue and fixation point to indicate trial has finished  
+set(h(:),'color',[.5 .5 .5]);
+sendEvent('stimulus.training','start');
+for si=1:nSeq;
+
+  sleepSec(interSeqDuration);
+  sendEvent('stimulus.sequence','start');
+  set(h(:),'color',bgColor); % rest all symbols to background color
+
+  % initialize the buffer_newevents state so that will catch all predictions after this time
+  [ans,state]=buffer_newevents(buffhost,buffport,[],[],[],0);
+
+  stimSeqrow=zeros(size(symbols,1),nRepetitions*numel(symbols));
+  stimSeqcol=zeros(size(symbols,2),nRepetitions*numel(symbols)); % [nSyb x nFlash] used record what flashed when
+  nFlash=0;
+  tgtIdx = tgtSeq(si);
+  for ri=1:numel(x); % reps
+      nFlash = nFlash + 1;
+%     for ei=1:numel(symbols); % symbs
+      set(h(:),'color',bgColor);
+      if x(ri) > 5
+        rowflashed = x(ri)-5;
+        set(h(rowflashed,:),'color',flashColor);
+        for i = 1:15
+            if ismember(i,numbers(rowflashed,:))
+               stimSeqrow(rowflashed,nFlash) = true;
+            end
+        end
+       
+        drawnow;
+        ev=sendEvent('stimulus.rowFlash',numbers(rowflashed,:)); % indicate this row is 'flashed'
+        sendEvent('stimulus.rowtgtFlash',ismember(tgtIdx, numbers(rowflashed,:)),ev.sample); % indicate 'target' flashs
+        if ismember(tgtIdx, numbers(rowflashed,:))
+            trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
+        end
+      else
+        colflashed = x(ri);
+        set(h(:,colflashed),'color',flashColor);
+        for i = 1:15
+            if ismember(i,numbers(:,colflashed))
+               stimSeqcol(colflashed,nFlash) = true;
+            end
+        end
+        drawnow;
+        ev=sendEvent('stimulus.colFlash',numbers(:,colflashed));
+        sendEvent('stimulus.coltgtFlash',ismember(tgtIdx, numbers(:,colflashed)),ev.sample); % indicate 'target' flashs
+        if ismember(tgtIdx, numbers(:,colflashed))
+            trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
+        end
+      end
+      
+%       flashIdx=ei;
+%       % flash
+
+      
+      sleepSec(stimDuration);
+      % reset
+      set(h(:),'color',bgColor);
+      drawnow;      
+%     end
+  end
+
+  % combine the classifier predictions with the stimulus used
+  % wait for the signal processing pipeline to return the set of predictions
+  if( verb>0 ) fprintf(1,'Waiting for predictions\n'); end;
+  [rowdevents,~]=buffer_newevents(buffhost,buffport,state,'classifier.prediction.row',[],500);
+
+  [coldevents,state]=buffer_newevents(buffhost,buffport,state,'classifier.prediction.col',[],500);
+  if ( ~isempty(coldevents) ) 
+    % correlate the stimulus sequence with the classifier predictions to identify the most likely letter
+    pred =[coldevents.value]; % get all the classifier predictions in order
+    nPred=numel(pred);
+    ss   = reshape(stimSeqcol(:,1:nFlash),[size(symbols,2) nFlash]);
+    corr = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
+    [ans,predTgtcol] = max(corr); % predicted target is highest correlation
+    
+  end
+  if ( ~isempty(rowdevents) ) 
+    % correlate the stimulus sequence with the classifier predictions to identify the most likely letter
+    pred =[rowdevents.value]; % get all the classifier predictions in order
+    nPred=numel(pred);
+    ss   = reshape(stimSeqrow(:,1:nFlash),[size(symbols,1) nFlash]);
+    corr = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
+    [ans,predTgtrow] = max(corr); % predicted target is highest correlation
+    
+  end
+  % show the classifier prediction
+  set(h(predTgtrow,predTgtcol),'color',fbColor);
+  drawnow;
+  sendEvent('stimulus.prediction',symbols{predTgtrow,predTgtcol});
+  sleepSec(feedbackDuration);
+end % sequences
+% end training marker
+sendEvent('stimulus.feedback','end');
