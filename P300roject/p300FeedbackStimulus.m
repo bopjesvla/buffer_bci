@@ -37,6 +37,8 @@ flashColor=[1 1 1]; % the 'flash' color (white)
 tgtColor=[0 1 0]; % the target indication color (green)
 fbColor = [0 0 1];
 
+
+
 symbols={'pause', 'up', 'tvOff', 'tv1', 'food'; 'left', 'down', 'right', 'tv2','toilet'; 'call1','call2','call3', 'tv3', 'pain'};
 numbers = [1 4 7 10 13; 2 5 8 11 14; 3 6 9 12 15];
 % make the stimulus
@@ -64,20 +66,23 @@ for si=1:nSeq;
   % initialize the buffer_newevents state so that will catch all predictions after this time
   [ans,state]=buffer_newevents(buffhost,buffport,[],[],[],0);
 
-  stimSeqrow=zeros(size(symbols,1),nRepetitions*numel(symbols));
-  stimSeqcol=zeros(size(symbols,2),nRepetitions*numel(symbols)); % [nSyb x nFlash] used record what flashed when
-  nFlash=0;
+  stimSeqrow=zeros(size(symbols,1),3*size(symbols,1));
+  stimSeqcol=zeros(size(symbols,2),3*size(symbols,2)); % [nSyb x nFlash] used record what flashed when
+  nFlashcol=0;
+  nFlashrow=0;
   tgtIdx = tgtSeq(si);
+  disp(tgtIdx);
   for ri=1:numel(x); % reps
-      nFlash = nFlash + 1;
+      
 %     for ei=1:numel(symbols); % symbs
       set(h(:),'color',bgColor);
       if x(ri) > 5
         rowflashed = x(ri)-5;
+        nFlashrow = nFlashrow+1;
         set(h(rowflashed,:),'color',flashColor);
         for i = 1:15
             if ismember(i,numbers(rowflashed,:))
-               stimSeqrow(rowflashed,nFlash) = true;
+               stimSeqrow(rowflashed,nFlashrow) = true;
             end
         end
        
@@ -89,10 +94,11 @@ for si=1:nSeq;
         end
       else
         colflashed = x(ri);
+        nFlashcol = nFlashcol + 1;
         set(h(:,colflashed),'color',flashColor);
         for i = 1:15
             if ismember(i,numbers(:,colflashed))
-               stimSeqcol(colflashed,nFlash) = true;
+               stimSeqcol(colflashed,nFlashcol) = true;
             end
         end
         drawnow;
@@ -124,24 +130,25 @@ for si=1:nSeq;
     % correlate the stimulus sequence with the classifier predictions to identify the most likely letter
     pred =[coldevents.value]; % get all the classifier predictions in order
     nPred=numel(pred);
-    ss   = reshape(stimSeqcol(:,1:nFlash),[size(symbols,2) nFlash]);
-    corr = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
-    [ans,predTgtcol] = max(corr); % predicted target is highest correlation
+    ss   = reshape(stimSeqcol(:,1:nFlashcol),[size(symbols,2) nFlashcol]);
+    corrcol = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
+    [ans,predTgtcol] = max(corrcol); % predicted target is highest correlation
     
   end
   if ( ~isempty(rowdevents) ) 
     % correlate the stimulus sequence with the classifier predictions to identify the most likely letter
     pred =[rowdevents.value]; % get all the classifier predictions in order
     nPred=numel(pred);
-    ss   = reshape(stimSeqrow(:,1:nFlash),[size(symbols,1) nFlash]);
-    corr = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
-    [ans,predTgtrow] = max(corr); % predicted target is highest correlation
+    ss   = reshape(stimSeqrow(:,1:nFlashrow),[size(symbols,1) nFlashrow]);
+    corrrow = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
+    [ans,predTgtrow] = max(corrrow); % predicted target is highest correlation
     
   end
   % show the classifier prediction
   set(h(predTgtrow,predTgtcol),'color',fbColor);
   drawnow;
   sendEvent('stimulus.prediction',symbols{predTgtrow,predTgtcol});
+  predictions(nSeq) = numbers(predTgtrow,predTgtcol);
   sleepSec(feedbackDuration);
 end % sequences
 % end training marker
