@@ -87,9 +87,9 @@ for si=1:nSeq;
         drawnow;
         ev=sendEvent('stimulus.rowFlash',numbers(rowflashed,:)); % indicate this row is 'flashed'
 %         sendEvent('stimulus.rowtgtFlash',ismember(tgtIdx, numbers(rowflashed,:)),ev.sample); % indicate 'target' flashs
-        if ismember(tgtIdx, numbers(rowflashed,:))
-            trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
-        end
+%         if ismember(tgtIdx, numbers(rowflashed,:))
+%             trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
+%         end
       else
         colflashed = x(ri);
         nFlashcol = nFlashcol + 1;
@@ -102,9 +102,9 @@ for si=1:nSeq;
         drawnow;
         ev=sendEvent('stimulus.colFlash',numbers(:,colflashed));
 %         sendEvent('stimulus.coltgtFlash',ismember(tgtIdx, numbers(:,colflashed)),ev.sample); % indicate 'target' flashs
-        if ismember(tgtIdx, numbers(:,colflashed))
-            trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
-        end
+%         if ismember(tgtIdx, numbers(:,colflashed))
+%             trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
+%         end
       end
       
 %       flashIdx=ei;

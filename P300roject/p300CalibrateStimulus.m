@@ -26,8 +26,8 @@ initgetwTime;
 initsleepSec;
 
 verb=0;
-nSeq=15;
-nRepetitions=5;  % the number of complete row/col stimulus before sequence is finished
+nSeq=30;
+% nRepetitions=5;  % the number of complete row/col stimulus before sequence is finished
 cueDuration=2;
 stimDuration=.2; % the length a row/col is highlighted
 interSeqDuration=2;
@@ -45,7 +45,7 @@ clf;
 [h]=initGrid(symbols);
 
 tgtSeq = repmat([1:numel(symbols)]',ceil(nSeq/numel(symbols)));
-tgtSeq = tgtSeq(randperm(nSeq))
+tgtSeq = tgtSeq(randperm(nSeq));
 
 flashseqsmall = [1 2 3 4 5 6 7 8];
 flashseq = [flashseqsmall flashseqsmall flashseqsmall];
@@ -79,18 +79,18 @@ for si=1:nSeq;
         drawnow;
         ev=sendEvent('stimulus.rowflash',numbers(rowflashed,:)); % indicate this row is 'flashed'
         sendEvent('stimulus.rowtgtFlash',ismember(tgtIdx, numbers(rowflashed,:)),ev.sample); % indicate 'target' flashs
-        if ismember(tgtIdx, numbers(rowflashed,:))
-            trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
-        end
+%         if ismember(tgtIdx, numbers(rowflashed,:))
+%             trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
+%         end
       else
         colflashed = x(ri);
         set(h(:,colflashed),'color',flashColor);
         drawnow;
         ev=sendEvent('stimulus.colflash',numbers(:,colflashed));
         sendEvent('stimulus.coltgtFlash',ismember(tgtIdx, numbers(:,colflashed)),ev.sample); % indicate 'target' flashs
-        if ismember(tgtIdx, numbers(:,colflashed))
-            trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
-        end
+%         if ismember(tgtIdx, numbers(:,colflashed))
+%             trigsocket.send(javaObject('java.net.DatagramPacket',int8([1 0]),1));
+%         end
       end
       
 %       flashIdx=ei;
