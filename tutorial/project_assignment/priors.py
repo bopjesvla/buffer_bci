@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from io import StringIO
 
 commands_columns = 'tv.1 tv.2 tv.3 tv.end sos.food sos.pain sos.toilet call.1 call.2 call.3 navigate.left navigate.right navigate.up navigate.down'.split()
 
@@ -36,36 +37,36 @@ def calc_priors(ev_list):
     commands = CMDS.copy()
 
     sent_list = commands.loc[ev_list]
-    print('sent', sent_list)
 
     # number of occurrences during demo / number of options
 
     default_priors = {
-        'tv': cost_tv_error * 3 / 3,
-        'sos': 2 * cost_sos_error * 1 / 3, # 2 errors: 1 for sos.on, 1 for sos.*
-        'call': cost_communicate_error * 2 / 3,
-        'navigate': cost_navigation_error * 11 / 4
+        'tv': 3 / 3,
+        'sos': 1 / 3, # 2 errors: 1 for sos.on, 1 for sos.*
+        'call': 2 / 3,
+        'navigate': 11 / 4
     }
 
     ## priors
 
     commands['priors'] = commands.event.replace(default_priors)
 
-    print('god',commands.priors)
+    # print('god',commands.priors)
+
+    # print((commands.priors / sum(commands.priors.values)).round(3).to_latex())
 
     tvevents = sent_list[sent_list.event == 'tv']
     navevents = sent_list[sent_list.event == 'navigate']
 
-    if len(tvevents) == 0 or tvevents.iloc[-1].value == 'end':
-        commands.loc['tv.end', 'priors'] = 0
-    else:
-        commands.loc['tv.end', 'priors'] = 1
+    if len(tvevents) > 0:
+        print(tvevents.index[-1])
         commands.loc[tvevents.index[-1], 'priors'] = 0
 
 
     error_priors = commands.priors.copy()
 
-    CERTAINTY = .8
+    # CERTAINTY = .8
+    CERTAINTY = 1
     dirs = 'navigate.' + pd.DataFrame({'normal':['up', 'right', 'down', 'left']})
     dirs['ldir'] = np.roll(dirs.normal, 1)
     dirs['rdir'] = np.roll(dirs.normal, -1)
@@ -79,7 +80,8 @@ def calc_priors(ev_list):
         commands.loc[dirs.loc[last_dir].rdir, 'priors'] *= .75
         commands.loc[dirs.loc[last_dir].opposite, 'priors'] = 0
 
-    final_priors = CERTAINTY * commands.priors + (1 - CERTAINTY) * error_priors
+    SMOOTHING = 1.
+    final_priors = CERTAINTY * (commands.priors + SMOOTHING) + (1. - CERTAINTY) * error_priors
 
     return final_priors / sum(final_priors.values)
 
@@ -108,6 +110,12 @@ if __name__ == "__main__":
         nEvents=hdr.nEvents;
         endExpt=None;
         bufhelp.sendEvent('prior.start', '1')
+
+        priors = calc_priors(ev_list)
+        bufhelp.sendEvent('priors', priors.to_csv())
+        priors.to_csv('priors.csv')
+        # bufhelp.sendEvent('p300preds', priors.to_csv())
+
         while endExpt is None:
             (curSamp,curEvents)=ftc.wait(-1,nEvents,timeout) # Block until there are new events to process
             if curEvents>nEvents :
@@ -115,11 +123,16 @@ if __name__ == "__main__":
                 nEvents=curEvents # update record of which events we've seen
                 for evt in evts:
                     if evt.type == "exit": endExpt=1
-                    ev_str = evt.type + '.' + str(evt.value)
-                    if ev_str in events.index.values:
-                        ev_list.append(ev_str)
+                    if evt.type == "p300preds":
+                        preds = pd.read_csv(StringIO(evt.value), header=None).set_index(0)[1]
+                        p = preds * priors
+                        p /= sum(p)
+                        best = p.sort_values().index[-1]
+                        best_event, best_value = best.split('.')
+                        bufhelp.sendEvent(best_event, best_value)
+                        ev_list.append(best)
                         priors = calc_priors(ev_list)
-                        bufhelp.sendEvent('priors', priors.to_csv())
+                        priors.to_csv('priors.csv')
 
                     # print(evt)
 
