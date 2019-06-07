@@ -130,6 +130,7 @@ if __name__ == "__main__":
                         best = p.sort_values().index[-1]
                         best_event, best_value = best.split('.')
                         bufhelp.sendEvent(best_event, best_value)
+                        bufhelp.sendEvent('finalprediction', best_event + '.' + best_value)
                         ev_list.append(best)
                         priors = calc_priors(ev_list)
                         priors.to_csv('priors.csv')
