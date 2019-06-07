@@ -47,8 +47,8 @@ bool = true;
 clf;
 [h]=initGrid(symbols);
 
-tgtSeq = repmat([1:numel(symbols)]',ceil(nSeq/numel(symbols)));
-tgtSeq = tgtSeq(randperm(nSeq));
+tgtSeq = repmat([2:numel(symbols)]',ceil(nSeq/numel(symbols)));
+tgtSeq = tgtSeq(randperm(nSeq-1));
 
 flashseqsmall = [1 2 3 4 5 6 7 8];
 flashseq = [flashseqsmall flashseqsmall flashseqsmall];
@@ -131,8 +131,8 @@ for si=1:nSeq;
     % correlate the stimulus sequence with the classifier predictions to identify the most likely letter
     pred =[coldevents.value]; % get all the classifier predictions in order
     nPred=numel(pred);
-    ss   = reshape(stimSeqcol(:,1:nFlashcol),[size(symbols,2) nFlashcol]);
-    corrcol = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
+    sscol   = reshape(stimSeqcol(:,1:nFlashcol),[size(symbols,2) nFlashcol]);
+    corrcol = sscol(:,1:nPred)*pred(:)/3;  % N.B. guard for missing predictions!
     [ans,predTgtcol] = max(corrcol); % predicted target is highest correlation
     
   end
@@ -140,16 +140,16 @@ for si=1:nSeq;
     % correlate the stimulus sequence with the classifier predictions to identify the most likely letter
     pred =[rowdevents.value]; % get all the classifier predictions in order
     nPred=numel(pred);
-    ss   = reshape(stimSeqrow(:,1:nFlashrow),[size(symbols,1) nFlashrow]);
-    corrrow = ss(:,1:nPred)*pred(:);  % N.B. guard for missing predictions!
+    ssrow   = reshape(stimSeqrow(:,1:nFlashrow),[size(symbols,1) nFlashrow]);
+    corrrow = (ssrow(:,1:nPred)*pred(:))/3;  % N.B. guard for missing predictions!
     [ans,predTgtrow] = max(corrrow); % predicted target is highest correlation
     
   end
   temp = 1;
   string = "";
-  for i=1:numel(corcol)
-      for j=1:numel(corrow)
-          string = string + commands_columns{temp} + "," + corrow(j)*corcol(i) + newline;
+  for i=1:numel(corrcol)
+      for j=1:numel(corrrow)
+          string = string + commands_columns{temp} + "," + corrrow(j)*corrcol(i) + newline;
           temp = temp+1;
       end
   end
@@ -161,13 +161,14 @@ for si=1:nSeq;
           bool = false;
             
         % show the classifier prediction
-          [row, col] = find(commands_columns == prediction);
+          [row, col] = find(commands_columns == prediction.value);
           set(h(row,col),'color',fbColor);
           drawnow;
           sleepSec(feedbackDuration);
       end
   end
   bool = true;
+%   predictions(si) = numbers(row,col);
 end % sequences
 % end training marker
 sendEvent('stimulus.feedback','end');

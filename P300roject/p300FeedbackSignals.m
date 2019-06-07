@@ -28,7 +28,7 @@ initgetwTime;
 initsleepSec;
 
 verb=1;
-cname='clsfr';
+cname='clsfrZina';
 trlen_ms=600;
 clsfr=load(cname);if(isfield(clsfr,'clsfr'))clsfr=clsfr.clsfr;end;
 

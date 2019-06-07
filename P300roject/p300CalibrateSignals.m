@@ -25,9 +25,9 @@ initsleepSec;
 
 verb=1;
 trlen_ms=600;
-dname='Robin_data1';
+dname='calibrate_dataZina1';
 
 [data,devents,state]=buffer_waitData(buffhost,buffport,[],'startSet',{{'stimulus.rowtgtFlash', 'stimulus.coltgtFlash'}},'exitSet',{'stimulus.training' 'end'},'verb',verb,'trlen_ms',trlen_ms);
 mi=matchEvents(devents,'stimulus.training','end'); devents(mi)=[]; data(mi)=[]; % remove the exit event
 fprintf('Saving %d epochs to : %s\n',numel(devents),dname);
-save('calibrate_data','data','devents');
+save(dname,'data','devents');

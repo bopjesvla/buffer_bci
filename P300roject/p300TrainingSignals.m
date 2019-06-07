@@ -22,8 +22,8 @@ end;
 
 capFile='cap_tmsi_mobita_im.txt';
 overridechnm=1; % capFile channel names override those from the header!
-dname='calibrate_data';
-fname='clsfr';
+dname='calibrate_dataZina1';
+fname='clsfrZina';
 
 load(dname);
 % train classifier
