@@ -50,13 +50,13 @@ while ( endTest==0 )
       % apply classification pipeline to this events data
       [f,fraw,p]=buffer_apply_erp_clsfr(data(ei).buf,clsfr);
       % send prediction, using the trigger-event sample number for matching later
-      sendEvent('classifier.prediction.col',f,devents(ei).sample);
+      sendEvent('classifier.prediction.col',p,devents(ei).sample);
     elseif (matchEvents(devents(ei),'stimulus.rowFlash'))
         if ( verb>0 ) fprintf('Processing event: %s',ev2str(devents(ei))); end;
       % apply classification pipeline to this events data
         [f,fraw,p]=buffer_apply_erp_clsfr(data(ei).buf,clsfr);
         % send prediction, using the trigger-event sample number for matching later
-        sendEvent('classifier.prediction.row',f,devents(ei).sample);
+        sendEvent('classifier.prediction.row',p,devents(ei).sample);
     end
   end % devents 
 end % feedback phase

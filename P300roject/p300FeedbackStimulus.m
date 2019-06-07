@@ -40,6 +40,9 @@ fbColor = [0 0 1];
 
 symbols={'pause', 'up', 'tvOff', 'tv1', 'food'; 'left', 'down', 'right', 'tv2','toilet'; 'call1','call2','call3', 'tv3', 'pain'};
 numbers = [1 4 7 10 13; 2 5 8 11 14; 3 6 9 12 15];
+commands_columns = ["pause", "navigate.up", "tv.end", "tv.1", "sos.food"; "navigate.left", "navigate.down", "navigate.right", "tv.2", "sos.toilet"; "call.1", "call.2", "call.3", "tv.3", "sos.pain"];
+s = struct('action',{},'p',{});
+bool = true;
 % make the stimulus
 clf;
 [h]=initGrid(symbols);
@@ -142,12 +145,29 @@ for si=1:nSeq;
     [ans,predTgtrow] = max(corrrow); % predicted target is highest correlation
     
   end
-  % show the classifier prediction
-  set(h(predTgtrow,predTgtcol),'color',fbColor);
-  drawnow;
-  sendEvent('stimulus.prediction',symbols{predTgtrow,predTgtcol});
-  predictions(si) = numbers(predTgtrow,predTgtcol);
-  sleepSec(feedbackDuration);
+  temp = 1;
+  string = "";
+  for i=1:numel(corcol)
+      for j=1:numel(corrow)
+          string = string + commands_columns{temp} + "," + corrow(j)*corcol(i) + newline;
+          temp = temp+1;
+      end
+  end
+  sendEvent('p300preds', string);  
+  
+  while bool
+      [prediction,state]=buffer_newevents(buffhost,buffport,state,'finalprediction',[],500);
+      if(~isempty(prediction))
+          bool = false;
+            
+        % show the classifier prediction
+          [row, col] = find(commands_columns == prediction);
+          set(h(row,col),'color',fbColor);
+          drawnow;
+          sleepSec(feedbackDuration);
+      end
+  end
+  bool = true;
 end % sequences
 % end training marker
 sendEvent('stimulus.feedback','end');
