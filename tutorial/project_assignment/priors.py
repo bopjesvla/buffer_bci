@@ -125,8 +125,13 @@ if __name__ == "__main__":
                     if evt.type == "exit": endExpt=1
                     if evt.type == "p300preds":
                         preds = pd.read_csv(StringIO(evt.value), header=None).set_index(0)[1]
+                        preds = preds.drop('pause')
+                        print(priors)
+                        print('preds', preds)
                         p = preds * priors
+                        print(p)
                         p /= sum(p)
+                        print(p)
                         best = p.sort_values().index[-1]
                         best_event, best_value = best.split('.')
                         bufhelp.sendEvent(best_event, best_value)
