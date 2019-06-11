@@ -55,6 +55,7 @@ x = flashseq(randperm(length(flashseq)));
 % play the stimulus
 % reset the cue and fixation point to indicate trial has finished  
 set(h(:),'color',[.5 .5 .5]);
+msg=msgbox({'Press OK to start'},'OK');while ishandle(msg); pause(.2); end;
 sendEvent('stimulus.training','start');
 for si=1:nSeq;
 
