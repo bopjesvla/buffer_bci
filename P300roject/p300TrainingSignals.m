@@ -20,10 +20,10 @@ while ( isempty(hdr) || ~isstruct(hdr) || (hdr.nchans==0) ) % wait for the buffe
   pause(1);
 end;
 
-capFile='cap_tmsi_mobita_im.txt';
+capFile='cap_tmsi_mobita_32ch.txt';
 overridechnm=1; % capFile channel names override those from the header!
-dname='calibrate_dataZina1';
-fname='clsfrZina';
+dname='calibrate_dataWouter1';
+fname='clsfrWouter1';
 
 load(dname);
 % train classifier

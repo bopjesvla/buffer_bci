@@ -49,7 +49,7 @@ clf;
 
 tgtSeq = repmat([2:numel(symbols)]',ceil(nSeq/numel(symbols)));
 tgtSeq = tgtSeq(randperm(nSeq-1));
-
+tgtSeq = [2 2 2 2 2 5 5 5 5 5 6 10 11 7 15]';
 flashseqsmall = [1 2 3 4 5 6 7 8];
 flashseq = [flashseqsmall flashseqsmall flashseqsmall];
 x = flashseq(randperm(length(flashseq)));
@@ -58,14 +58,23 @@ x = flashseq(randperm(length(flashseq)));
 % play the stimulus
 % reset the cue and fixation point to indicate trial has finished  
 set(h(:),'color',[.5 .5 .5]);
-msg=msgbox({'Press OK to start'},'OK');while ishandle(msg); pause(.2); end;
 sendEvent('stimulus.training','start');
-for si=1:nSeq;
-
-  sleepSec(interSeqDuration);
-  sendEvent('stimulus.sequence','start');
-  set(h(:),'color',bgColor); % rest all symbols to background color
-
+while true
+%for si=1:nSeq;
+    msg=msgbox({'Press OK to start'},'OK');while ishandle(msg); pause(.2); end;
+    
+%   sleepSec(interSeqDuration);
+%   sendEvent('stimulus.sequence','start');
+%   set(h(:),'color',bgColor); % rest all symbols to background color
+%   tgtIdx=tgtSeq(si);
+%   set(h(tgtIdx),'color',tgtColor);
+%   drawnow;% expose; % N.B. needs a full drawnow for some reason
+%   sendEvent('stimulus.targetSymbol',symbols{tgtIdx});
+%   fprintf('%d) tgt=%s : ',si,symbols{tgtSeq(si)}); % debug info
+%   sleepSec(cueDuration);  
+%   set(h(:),'color',bgColor); % rest all symbols to background color
+%   drawnow;
+%   sleepSec(1); 
   % initialize the buffer_newevents state so that will catch all predictions after this time
   [ans,state]=buffer_newevents(buffhost,buffport,[],[],[],0);
 
@@ -73,7 +82,7 @@ for si=1:nSeq;
   stimSeqcol=zeros(size(symbols,2),3*size(symbols,2)); % [nSyb x nFlash] used record what flashed when
   nFlashcol=0;
   nFlashrow=0;
-  tgtIdx = tgtSeq(si);
+  %tgtIdx = tgtSeq(si);
   for ri=1:numel(x); % reps
       
 %     for ei=1:numel(symbols); % symbs
@@ -157,7 +166,7 @@ for si=1:nSeq;
   sendEvent('p300preds', string);  
   
   while bool
-      [prediction,state]=buffer_newevents(buffhost,buffport,state,'finalprediction',[],500);
+      [prediction,~]=buffer_newevents(buffhost,buffport,state,'finalprediction',[],500);
       if(~isempty(prediction))
           bool = false;
             

@@ -25,7 +25,7 @@ initsleepSec;
 
 verb=1;
 trlen_ms=600;
-dname='calibrate_dataZina1';
+dname='calibrate_dataRobin30';
 
 [data,devents,state]=buffer_waitData(buffhost,buffport,[],'startSet',{{'stimulus.rowtgtFlash', 'stimulus.coltgtFlash'}},'exitSet',{'stimulus.training' 'end'},'verb',verb,'trlen_ms',trlen_ms);
 mi=matchEvents(devents,'stimulus.training','end'); devents(mi)=[]; data(mi)=[]; % remove the exit event
