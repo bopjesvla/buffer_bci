@@ -80,7 +80,7 @@ def calc_priors(ev_list):
         commands.loc[dirs.loc[last_dir].rdir, 'priors'] *= .75
         commands.loc[dirs.loc[last_dir].opposite, 'priors'] = 0
 
-    SMOOTHING = 1.
+    SMOOTHING = 1000.
     final_priors = CERTAINTY * (commands.priors + SMOOTHING) + (1. - CERTAINTY) * error_priors
 
     return final_priors / sum(final_priors.values)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         bufhelp.sendEvent('priors', priors.to_csv())
         priors.to_csv('priors.csv')
         # bufhelp.sendEvent('p300preds', priors.to_csv())
-
+        i = 0
         while endExpt is None:
             (curSamp,curEvents)=ftc.wait(-1,nEvents,timeout) # Block until there are new events to process
             if curEvents>nEvents :
@@ -126,6 +126,8 @@ if __name__ == "__main__":
                     if evt.type == "p300preds":
                         preds = pd.read_csv(StringIO(evt.value), header=None).set_index(0)[1]
                         preds = preds.drop('pause')
+                        preds.to_csv('p300pred_wouter' + str(i) + '.csv')
+                        i += 1
                         print(priors)
                         print('preds', preds)
                         p = preds * priors
