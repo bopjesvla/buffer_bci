@@ -58,12 +58,13 @@ x = flashseq(randperm(length(flashseq)));
 % play the stimulus
 % reset the cue and fixation point to indicate trial has finished  
 set(h(:),'color',[.5 .5 .5]);
+msg=msgbox({'Press OK to start'},'OK');while ishandle(msg); pause(.2); end;
 sendEvent('stimulus.training','start');
+
 while true
 %for si=1:nSeq;
-    msg=msgbox({'Press OK to start'},'OK');while ishandle(msg); pause(.2); end;
     
-%   sleepSec(interSeqDuration);
+  sleepSec(interSeqDuration);
 %   sendEvent('stimulus.sequence','start');
 %   set(h(:),'color',bgColor); % rest all symbols to background color
 %   tgtIdx=tgtSeq(si);
@@ -178,7 +179,7 @@ while true
       end
   end
   bool = true;
-%   predictions(si) = numbers(row,col);
+   predictions(si) = numbers(row,col);
 end % sequences
 % end training marker
 sendEvent('stimulus.feedback','end');

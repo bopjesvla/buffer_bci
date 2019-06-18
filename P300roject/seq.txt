@@ -1,1 +1,3 @@
 navigate.left navigate.left navigate.left navigate.left navigate.left navigate.down navigate.down navigate.down navigate.down navigate.right tv.1 tv.2 tv.3 tv.end sos.food sos.pain
+
+call.2 navigate.up navigate.left navigate.left navigate.left navigate.left navigate.left navigate.left navigate.up sos.pain navigate.up navigate.up navigate.left tv.3 tv.end
