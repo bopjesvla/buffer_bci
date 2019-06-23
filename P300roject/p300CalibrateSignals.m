@@ -6,10 +6,10 @@
 % Setting paths and connecting to the buffer
 try cd(fileparts(mfilename('fullpath'))); catch; end
 try
-   run ../matlab/utilities/initPaths.m
+    run ../matlab/utilities/initPaths.m
 catch
-   msgbox({'Please change to the directory where this file is saved'... 
-       'before running the rest of this code'}, 'Change directory'); 
+    msgbox({'Please change to the directory where this file is saved'...
+        'before running the rest of this code'}, 'Change directory');
 end
 try cd(fileparts(mfilename('fullpath'))); catch; end
 
@@ -17,13 +17,13 @@ buffhost = 'localhost'; buffport = 1972;
 % Wait for the buffer to return valid header information
 hdr=[];
 while ( isempty(hdr) || ~isstruct(hdr) || (hdr.nchans==0) )
-  try 
-    hdr=buffer('get_hdr', [], buffhost,buffport); 
-  catch
-    hdr=[];
-    fprintf('Invalid header info... waiting.\n');
-  end
-  pause(1);
+    try
+        hdr=buffer('get_hdr', [], buffhost,buffport);
+    catch
+        hdr=[];
+        fprintf('Invalid header info... waiting.\n');
+    end
+    pause(1);
 end
 
 % Set the real-time-clock to use
@@ -39,7 +39,7 @@ dname='calibration_data';
     'startSet', {{'stimulus.rowtgtFlash', 'stimulus.coltgtFlash'}},...
     'exitSet', {'stimulus.training' 'end'},...
     'verb', verb,'trlen_ms', trlen_ms);
-mi=matchEvents(devents, 'stimulus.training', 'end'); devents(mi)=[]; 
+mi=matchEvents(devents, 'stimulus.training', 'end'); devents(mi)=[];
 data(mi)=[]; % Remove the exit event
 fprintf('Saving %d epochs to : %s\n', numel(devents), dname);
 save(dname, 'data', 'devents');

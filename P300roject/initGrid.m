@@ -15,7 +15,7 @@ opts = parseOpts(opts, varargin);
 if ( ~isempty(opts.fig) ); figure(opts.fig); else; opts.fig = gcf; end
 
 % Set the axes to invisible
-set(gcf, 'color', [0 0 0]); 
+set(gcf, 'color', [0 0 0]);
 set(gca, 'visible', 'off');
 set(gca, 'YDir', 'reverse');
 set(gca, 'xlim', [0 1], 'ylim', [0 1]);
@@ -29,12 +29,12 @@ fontSize = opts.fontSize * wSize(4);
 hdls = zeros([size(symbols), 1]);
 h = 1 / (size(symbols, 1) + 1); w = 1 / (size(symbols, 2) + 1);
 for i = 1:size(symbols, 1)
-  for j = 1:size(symbols, 2)
-    x= j * w; y = i * h;
-    hdls(i, j, 1) = text(x, y - h * .1, symbols{i, j}, 'fontunits','pixel',...
-        'fontsize', fontSize, 'HorizontalAlignment', 'center', 'FontWeight',...
-        'bold', 'Color' ,[.5 .5 .5]);
-  end
+    for j = 1:size(symbols, 2)
+        x= j * w; y = i * h;
+        hdls(i, j, 1) = text(x, y - h * .1, symbols{i, j}, 'fontunits','pixel',...
+            'fontsize', fontSize, 'HorizontalAlignment', 'center', 'FontWeight',...
+            'bold', 'Color' ,[.5 .5 .5]);
+    end
 end
 drawnow; % Broadcast symbols to screen
 return;
