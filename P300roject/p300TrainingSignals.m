@@ -3,29 +3,18 @@
 % (p300 or no p300). Then it shows a confusion matrix and the training
 % accuracy.
 
-% Connecting to the buffer
-try cd(fileparts(mfilename('fullpath'))); catch; end
-try
-    run ../matlab/utilities/initPaths.m
-catch
-    msgbox({'Please change to the directory where this file is saved'...
-        'before running the rest of this code'}, 'Change directory');
-end
-try cd(fileparts(mfilename('fullpath'))); catch; end
-
-buffhost = 'localhost'; buffport = 1972;
-
-% Wait for the buffer to return valid header information
-hdr=[];
-while ( isempty(hdr) || ~isstruct(hdr) || (hdr.nchans==0) ) % wait for the buffer to contain valid data
-    try
-        hdr = buffer('get_hdr', [], buffhost, buffport);
-    catch
-        hdr = [];
-        fprintf('Invalid header info... waiting.\n');
-    end
-    pause(1);
-end
+% Reconstruction of the header without buffer
+clear hdr; % Errors on next run otherwise 
+hdr.nSamples = 3984900;
+hdr.nSamplesPre = 0;
+hdr.nTrials = 718;
+hdr.orig = struct(); 
+hdr.nChans = 37; 
+hdr.nEvents = 718; 
+hdr.Fs = 250; 
+hdr.data_type = 9;
+hdr.bufsize = 70; 
+hdr.label = num2cell(1:32); 
 
 % Configuration
 capFile = 'cap_tmsi_mobita_32ch.txt';
@@ -39,5 +28,5 @@ load(dname);
     'wht', 'freqband', [0 .3 10 12], 'badchrm', 0, 'capFile', capFile,...
     'overridechnms', overridechnm);
 % Save the classifier
-fprintf(1,'Saving clsfr to : %s',fname);
+fprintf(1,'Saving clsfr to : %s\n',fname);
 save(fname,'-struct','clsfr');
