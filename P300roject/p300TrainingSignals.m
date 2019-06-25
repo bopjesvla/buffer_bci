@@ -4,7 +4,9 @@
 % accuracy.
 
 % Reconstruction of the header without buffer
-clear hdr; % Errors on next run otherwise 
+% Note: should work for standard setting Mobita 32 channels. Changing data
+% formats in other .m files will require changes in this configuration. 
+clear hdr; % Errors if it already exists 
 hdr.nSamples = 3984900;
 hdr.nSamplesPre = 0;
 hdr.nTrials = 718;
